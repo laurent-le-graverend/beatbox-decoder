@@ -3,8 +3,9 @@
 angular
   .module('hackday')
   .controller('MainCtrl', function(
-    $scope,
     $q,
+    $http,
+    $scope,
     BeatDetector,
     Encoder,
     Sample
@@ -103,25 +104,32 @@ angular
     //request.send();
 
     function parse(buffer) {
-      BeatDetector.lowPassFilter(buffer)
-        .then(function(audioBuffer) {
-          var initialThresold = 0.9,
-            thresold = initialThresold,
-            minThresold = 0.3,
-            minPeaks = 30;
+      //BeatDetector.lowPassFilter(buffer)
+      //  .then(function(audioBuffer) {
+      //    return something(audioBuffer);
+      //  });
 
-          do {
-            peaks = BeatDetector.getPeaks(audioBuffer, thresold);
-            thresold -= 0.05;
-          } while (peaks.length < minPeaks && thresold >= minThresold);
-          BeatDetector.drawBeats(peaks, audioBuffer.getChannelData(0).length);
-          beatsArray = _.map(BeatDetector.convertIndexToTime(peaks, buffer), function(time) {
-            return {
-              sound: 'kick',
-              startTime: time
-            };
-          });
+      return getBeats(buffer);
+
+      function getBeats(audioBuffer) {
+        var initialThresold = 0.9,
+          thresold = initialThresold,
+          minThresold = 0.3,
+          minPeaks = 30;
+
+        do {
+          peaks = BeatDetector.getPeaks(audioBuffer, thresold);
+          thresold -= 0.05;
+        } while (peaks.length < minPeaks && thresold >= minThresold);
+
+        BeatDetector.drawBeats(peaks, audioBuffer.getChannelData(0).length);
+        beatsArray = _.map(BeatDetector.convertIndexToTime(peaks, buffer), function(time) {
+          return {
+            sound: 'kick',
+            startTime: time
+          };
         });
+      }
     }
 
     function startRecord() {
@@ -168,6 +176,8 @@ angular
 
     $scope.uploadPeaks = function upload() {
       const peakTimes = BeatDetector.convertIndexToTime(peaks, record);
+      const uploadUrl = 'http://10.205.126.137:8000/';
+      const config = {};
 
       BeatDetector.exportPeakBuffers(peakTimes, record)
         .then(function(buffers) {
@@ -176,9 +186,22 @@ angular
           }));
         })
         .then(function(blobs) {
-          _.each(blobs, function(blob) {
+          var promises = _.map(blobs, function(blob) {
+            var fd = new FormData();
+            fd.append('file', blob);
+
+            return $http.post(uploadUrl, fd, config)
+              .then(function(response) {
+                return response.data;
+              });
+
             console.log(URL.createObjectURL(blob));
           });
+
+          return $q.all(promises);
+        })
+        .then(function() {
+
         })
         .catch(function(err) {
           console.log(err);
