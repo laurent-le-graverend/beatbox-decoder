@@ -77,6 +77,8 @@ angular
         source.start(0, Math.max(peak - 0.3, 0), 1);
         source.connect(ctx.destination);
 
-        return ctx.startRendering();
+        return ctx.startRendering().then(function(buffer){
+          return {peak: peak, buffer: buffer};
+        });
       }
   });

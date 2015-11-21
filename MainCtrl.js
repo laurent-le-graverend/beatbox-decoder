@@ -55,17 +55,35 @@ angular
       startTime: 0,
       sound: 'kick'
     }, {
-      startTime: 0.5,
+      startTime: 0.25,
       sound: 'hh-closed'
     }, {
       startTime: 0.5,
       sound: 'snare'
     }, {
+      startTime: 0.75,
+      sound: 'hh-closed'
+    }, {
+      startTime: 0.875,
+      sound: 'kick'
+    }, {
       startTime: 1,
       sound: 'snare'
     }, {
-      startTime: 1.5,
+      startTime: 1.125,
+      sound: 'snare'
+    }, {
+      startTime: 1.25,
+      sound: 'hh-closed'
+    }, {
+      startTime: 1.375,
       sound: 'kick'
+    }, {
+      startTime: 1.5,
+      sound: 'snare'
+    }, {
+      startTime: 1.75,
+      sound: 'hh-closed'
     }];
 
     $scope.isRecording = false;
@@ -185,17 +203,21 @@ angular
       BeatDetector.exportPeakBuffers(peakTimes, record)
         .then(function(buffers) {
           return $q.all(_.map(buffers, function(buffer) {
-            return Encoder.toWav(buffer);
+            console.log("buffer.peak " + buffer.peak);
+            return Encoder.toWav(buffer.buffer).then(function(blob) {
+              return {peak: buffer.peak, blob: blob};
+            })
           }));
         })
         .then(function(blobs) {
           var promises = _.map(blobs, function(blob) {
             var fd = new FormData();
-            fd.append('file', blob);
+            fd.append('file', blob.blob);
 
             return $http.post(uploadUrl, fd, config)
               .then(function(response) {
-                return response.data;
+                console.log("blob.peak " + blob.peak);
+                return {peak: blob.peak, sound: response.data.sound};
               });
 
             console.log(URL.createObjectURL(blob));
@@ -203,8 +225,16 @@ angular
 
           return $q.all(promises);
         })
-        .then(function() {
-
+        .then(function(sounds) {
+            beatsArray = _.map(sounds, function(sound) {
+              console.log("sound.sound " + sound.sound);
+              console.log("sound.peak " + sound.peak);
+              console.log("sound " + sound);
+              return {
+                sound: sound.sound,
+                startTime: sound.peak
+              };
+            })
         })
         .catch(function(err) {
           console.log(err);
