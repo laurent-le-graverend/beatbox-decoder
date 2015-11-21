@@ -24,7 +24,6 @@ angular.module('hackday', [])
     var context = new AudioContext(),
       bufferSize = 2048,
       soundArrayLeft = [],
-      record = {},
       audioInput,
       recorder;
 
@@ -60,30 +59,33 @@ angular.module('hackday', [])
     }
 
     function stopRecord() {
-      var resultSoundArray,
-        resultLength = Math.ceil(soundArrayLeft.length * bufferSize),
+      var resultLength = Math.ceil(soundArrayLeft.length * bufferSize),
+        resultSoundArray = new Float32Array(resultLength),
         offset = 0,
+        audioBuffer,
         i;
 
       // Disconnect nodes
       audioInput.disconnect();
       recorder.disconnect();
-      soundArrayLeft = [];
 
       // Clean up data
-      resultSoundArray = new Float32Array(resultLength);
       for (i = 0; i < soundArrayLeft.length; i++) {
         resultSoundArray.set(soundArrayLeft[i], offset);
         offset += soundArrayLeft[i].length;
       }
+      soundArrayLeft = [];
 
-      record.audioBuffer = context.createBuffer(2, resultSoundArray.length, context.sampleRate);
+      audioBuffer = context.createBuffer(2, resultSoundArray.length, context.sampleRate);
+      audioBuffer.getChannelData(0).set(resultSoundArray);
+      audioBuffer.getChannelData(1).set(resultSoundArray);
 
-      var playSound = context.createBufferSource();
+      // For debug, play record
+      //var playSound = context.createBufferSource();
+      //playSound.buffer = audioBuffer;
+      //playSound.connect(context.destination);
+      //playSound.start(0);
 
-      console.log(record.audioBuffer);
-      playSound.buffer = record.audioBuffer;
-      playSound.connect(context.destination);
-      playSound.start(0);
+      return audioBuffer;
     }
   });
