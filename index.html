@@ -4,10 +4,13 @@
   <title>web-audio-hack-day</title>
 </head>
 <body ng-controller="MainCtrl">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
   <script src="node_modules/angular/angular.js"></script>
   <script src="app.js"></script>
   <script src="BeatDetector.js"></script>
+  <script src="Sample.js"></script>
   <script src="MainCtrl.js"></script>
   <button ng-click="toggleRecord()">Toggle Record</button> <span ng-show="isRecording">Recording...</span>
+  <button ng-click="playBeats()">Play beats</button>
 </body>
 </html>
