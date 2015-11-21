@@ -22,8 +22,8 @@ WINDOW_RESOLUTION = 13
 WINDOW_SIZE = 4500 # samples
 FEATURES_PER_WINDOW = 4
 FEATURES = 4
-DRUMS = ["kick", "snare", "hh-closed"]
-DRUM_INDICES = dict((d, i) for (i, d) in enumerate(DRUMS))
+SOUNDS = ["kick", "snare", "hh-closed"]
+SOUND_INDICES = dict((d, i) for (i, d) in enumerate(SOUNDS))
 EPOCHS = 50
 
 class Classifier():
@@ -48,7 +48,7 @@ class Classifier():
             if s > strength:
                 best_match = i
                 strength = s
-        return DRUMS[best_match]
+        return SOUNDS[best_match]
 
     def test(self):
         tstresult = percentError( self.trainer.testOnClassData(
@@ -119,18 +119,18 @@ def visualize ():
 
 def split_samples(ratio):
     samples = {}
-    for drum in DRUMS:
-        samples[drum] = glob.glob(os.path.join('.', drum, '*'))
-        print len(samples[drum]), " x ", drum
+    for sound in SOUNDS:
+        samples[sound] = glob.glob(os.path.join('.', sound, '*'))
+        print len(samples[sound]), " x ", sound
 
     ds = ClassificationDataSet(FEATURES, 1, nb_classes=3) #TODO: what's the 2nd parameter?
-    for drum in samples:
-        for f in samples[drum]:
+    for sound in samples:
+        for f in samples[sound]:
             # if f.lower() != ".\\kick\\XR10bd01.WAV".lower():
             #    continue
             print f
             features = process_sample(*load_sample(f))
-            ds.addSample(features, [DRUM_INDICES[drum]]) #why put this in an array?
+            ds.addSample(features, [SOUND_INDICES[sound]]) #why put this in an array?
     training_set, test_set = ds.splitWithProportion( ratio )
     training_set._convertToOneOfMany( )
     test_set._convertToOneOfMany( )
