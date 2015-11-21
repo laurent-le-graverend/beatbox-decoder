@@ -48,19 +48,44 @@ angular
       else {
         var record = stopRecord();
         $scope.isRecording = false;
-        BeatDetector.lowPassFilter(record)
-          .then(function(audioBuffer) {
-            var playSound = context.createBufferSource();
-            playSound.buffer = audioBuffer;
-            playSound.connect(context.destination);
-            playSound.start(0);
-            return BeatDetector.getPeaks(audioBuffer, 1);
-          })
-          .then(function(peaks) {
-            console.log(peaks)
-          });
+
+        parse(record);
       }
     };
+
+    var request = new XMLHttpRequest();
+    request.open('GET', 'sample.wav', true);
+    request.responseType = 'arraybuffer';
+
+    request.onload = function() {
+      context.decodeAudioData(request.response, function(buffer) {
+        parse(buffer);
+      });
+    }
+    request.send();
+
+    function parse(buffer) {
+      BeatDetector.lowPassFilter(buffer)
+        .then(function(audioBuffer) {
+          var playSound = context.createBufferSource();
+          playSound.buffer = audioBuffer;
+          playSound.connect(context.destination);
+          playSound.start(0);
+
+          var peaks,
+              initialThresold = 0.9,
+              thresold = initialThresold,
+              minThresold = 0.3,
+              minPeaks = 30;
+
+          do {
+            peaks = BeatDetector.getPeaks(audioBuffer, thresold);
+            thresold -= 0.05;
+          } while (peaks.length < minPeaks && thresold >= minThresold);
+          BeatDetector.drawBeats(peaks, audioBuffer.getChannelData(0).length);
+          console.log(BeatDetector.convertIndexToTime(peaks, buffer));
+        });
+    }
 
     function startRecord() {
       navigator.getUserMedia(getUserMediaOpts,
