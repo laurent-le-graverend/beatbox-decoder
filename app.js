@@ -1,2 +1,1 @@
-angular.module('hackday', [])
-  .controller('MainCtrl', function($scope) {});
+angular.module('hackday', []);
