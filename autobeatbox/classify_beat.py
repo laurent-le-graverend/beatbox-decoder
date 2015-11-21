@@ -22,7 +22,7 @@ WINDOW_RESOLUTION = 13
 WINDOW_SIZE = 4500 # samples
 FEATURES_PER_WINDOW = 4
 FEATURES = 4
-DRUMS = ["kick", "snare", "hat"]
+DRUMS = ["kick", "snare", "hh-closed"]
 DRUM_INDICES = dict((d, i) for (i, d) in enumerate(DRUMS))
 EPOCHS = 50
 
@@ -65,7 +65,7 @@ def main ():
     # print test_set
 
 def visualize ():
-    sample_rate, snd = load_sample(".\\hat\\dh9.WAV")
+    sample_rate, snd = load_sample(".\\hh-closed\\dh9.WAV")
     print snd.dtype
     data = normalize(snd)
     print data.shape
