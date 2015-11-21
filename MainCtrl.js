@@ -46,16 +46,16 @@ angular
       startTime: 0,
       sound: 'kick'
     }, {
-      startTime: 500,
+      startTime: 0.5,
       sound: 'hh-closed'
     }, {
-      startTime: 500,
+      startTime: 0.5,
       sound: 'snare'
     }, {
-      startTime: 1000,
+      startTime: 1,
       sound: 'snare'
     }, {
-      startTime: 1500,
+      startTime: 1.5,
       sound: 'kick'
     }];
 
@@ -73,24 +73,50 @@ angular
         $scope.isRecording = true;
       }
       else {
-        var record = stopRecord();
+        record = stopRecord();
         $scope.isRecording = false;
-        BeatDetector.lowPassFilter(record)
-          .then(function(audioBuffer) {
-            var playSound = context.createBufferSource();
-            playSound.buffer = audioBuffer;
-            playSound.connect(context.destination);
-            playSound.start(0);
-            return BeatDetector.getPeaks(audioBuffer, 1);
-          })
-          .then(function(peaks) {
-            console.log(peaks)
-          });
+
+        parse(record);
       }
     };
 
     function storeBuffer(audioEvent) {
       soundArrayLeft.push(new Float32Array(audioEvent.inputBuffer.getChannelData(0)));
+    }
+
+    //var request = new XMLHttpRequest();
+    //request.open('GET', 'sample.wav', true);
+    //request.responseType = 'arraybuffer';
+    //
+    //request.onload = function() {
+    //  context.decodeAudioData(request.response, function(buffer) {
+    //    parse(buffer);
+    //  });
+    //}
+    //request.send();
+
+    function parse(buffer) {
+      BeatDetector.lowPassFilter(buffer)
+        .then(function(audioBuffer) {
+          var peaks,
+            initialThresold = 0.9,
+            thresold = initialThresold,
+            minThresold = 0.3,
+            minPeaks = 30;
+
+          do {
+            peaks = BeatDetector.getPeaks(audioBuffer, thresold);
+            thresold -= 0.05;
+          } while (peaks.length < minPeaks && thresold >= minThresold);
+          BeatDetector.drawBeats(peaks, audioBuffer.getChannelData(0).length);
+          console.log(BeatDetector.convertIndexToTime(peaks, buffer));
+          beatsArray = _.map(BeatDetector.convertIndexToTime(peaks, buffer), function(time) {
+            return {
+              sound: 'kick',
+              startTime: time
+            };
+          });
+        });
     }
 
     function startRecord() {
@@ -130,7 +156,7 @@ angular
       audioBuffer.getChannelData(1).set(resultSoundArray);
 
       // For debug, play record
-      playSound(audioBuffer);
+      //playSound(audioBuffer);
 
       return audioBuffer;
     }
@@ -139,7 +165,7 @@ angular
       var playSound = context.createBufferSource();
       playSound.buffer = audioBuffer;
       playSound.connect(context.destination);
-      playSound.start(atTime / 1000 + context.currentTime || 0);
+      playSound.start(atTime + context.currentTime || 0);
     }
 
     function playBeats(beatsArray) {

@@ -10,7 +10,11 @@
   <script src="BeatDetector.js"></script>
   <script src="Sample.js"></script>
   <script src="MainCtrl.js"></script>
+
   <button ng-click="toggleRecord()">Toggle Record</button> <span ng-show="isRecording">Recording...</span>
   <button ng-click="playBeats()">Play beats</button>
+  <br>
+  <br>
+  <canvas id="waveform" width="800" heigth="50" style="width: 800px; height: 50px;"></canvas>
 </body>
 </html>
