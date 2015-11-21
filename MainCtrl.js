@@ -176,8 +176,11 @@ angular
 
     $scope.uploadPeaks = function upload() {
       const peakTimes = BeatDetector.convertIndexToTime(peaks, record);
-      const uploadUrl = 'http://10.205.126.137:8000/';
-      const config = {};
+      const uploadUrl = 'http://localhost:8000/';
+      const config = {
+            transformRequest: angular.identity,
+            headers: {'Content-Type': undefined}
+        };
 
       BeatDetector.exportPeakBuffers(peakTimes, record)
         .then(function(buffers) {
