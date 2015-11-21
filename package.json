@@ -1,0 +1,21 @@
+{
+  "name": "web-audio-hack-day",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "browser-sync start --server --files '**/*'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/laurent-le-graverend/web-audio-hack-day.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/laurent-le-graverend/web-audio-hack-day/issues"
+  },
+  "homepage": "https://github.com/laurent-le-graverend/web-audio-hack-day#readme",
+  "dependencies": {
+    "angular": "1.4.8"
+  }
+}
