@@ -1,62 +1,62 @@
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
+getUserMediaOpts = {
+  audio: {
+    mandatory: {
+      echoCancellation: false,
+      googEchoCancellation: false,
+      googEchoCancellation2: false,
+      googAutoGainControl: false,
+      googAutoGainControl2: false,
+      googNoiseSuppression: false,
+      googNoiseSuppression2: false,
+      googHighpassFilter: false,
+      googTypingNoiseDetection: false
+    },
+    optional: []
+  },
+  video: false
+};
+
 angular.module('hackday', [])
   .controller('MainCtrl', function($scope) {
 
     var context = new AudioContext(),
-      isRecording = false,
       bufferSize = 2048,
       soundArrayLeft = [],
       record = {},
       audioInput,
       recorder;
 
-    function storeBuffer(audioProcessingEvent) {
-      var soundData = audioProcessingEvent.inputBuffer.getChannelData(0);
+    $scope.isRecording = false;
 
-      soundArrayLeft.push(new Float32Array(soundData));
-
-      console.log(soundArrayLeft);
+    function storeBuffer(audioEvent) {
+      soundArrayLeft.push(new Float32Array(audioEvent.inputBuffer.getChannelData(0)));
     }
 
     $scope.toggleRecord = function() {
-      if (!isRecording) {
+      if (!$scope.isRecording) {
         startRecord();
-        isRecording = true;
+        $scope.isRecording = true;
       }
       else {
         stopRecord();
-        isRecording = false;
+        $scope.isRecording = false;
       }
     };
 
     function startRecord() {
-      navigator.getUserMedia({
-        audio: {
-          mandatory: {
-            echoCancellation: false,
-            googEchoCancellation: false,
-            googEchoCancellation2: false,
-            googAutoGainControl: false,
-            googAutoGainControl2: false,
-            googNoiseSuppression: false,
-            googNoiseSuppression2: false,
-            googHighpassFilter: false,
-            googTypingNoiseDetection: false
-          },
-          optional: []
+      navigator.getUserMedia(getUserMediaOpts,
+        function(stream) {
+          audioInput = context.createMediaStreamSource(stream);
+          recorder = context.createScriptProcessor(bufferSize, 1, 1);
+          recorder.onaudioprocess = storeBuffer;
+          audioInput.connect(recorder);
+          recorder.connect(context.destination);
         },
-        video: false
-      }, function(stream) {
-        audioInput = context.createMediaStreamSource(stream);
-        recorder = context.createScriptProcessor(bufferSize, 1, 1);
-        recorder.onaudioprocess = storeBuffer;
-        audioInput.connect(recorder);
-        recorder.connect(context.destination);
-
-      }, function(e) {
-
-      });
+        function(err) {
+          throw new Error(err);
+        });
     }
 
     function stopRecord() {
@@ -65,8 +65,10 @@ angular.module('hackday', [])
         offset = 0,
         i;
 
+      // Disconnect nodes
       audioInput.disconnect();
       recorder.disconnect();
+      soundArrayLeft = [];
 
       // Clean up data
       resultSoundArray = new Float32Array(resultLength);
@@ -79,9 +81,9 @@ angular.module('hackday', [])
 
       var playSound = context.createBufferSource();
 
+      console.log(record.audioBuffer);
       playSound.buffer = record.audioBuffer;
       playSound.connect(context.destination);
       playSound.start(0);
-
     }
   });
