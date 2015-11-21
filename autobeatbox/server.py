@@ -10,7 +10,7 @@ classifier = classify_beat.Classifier()
 
 def app(environ, start_response):
     request = webob.Request(environ)
-    print request.method
+    print "method", request.method
     if request.method == "GET":
         start_response("200 OK", [("Content-Type", "text/html")]) #, ('Access-Control-Allow-Origin', '*')])
 
@@ -19,7 +19,7 @@ def app(environ, start_response):
             <p><button type="submit">Submit</button>
         </form></body></html>"""
     elif request.method == "POST":
-        print "got here"
+        print "starting response"
         start_response("200 OK", [("Content-Type", "application/json")]) #, ('Access-Control-Allow-Origin', '*')])
         try:
             print request.POST
@@ -34,7 +34,7 @@ def app(environ, start_response):
             else:
                 print request.body_file.read(1000)
                 f = request.body_file
-            yield json.dumps({"drum":classifier.classify(f)})
+            yield json.dumps({"sound":classifier.classify(f)})
         except Exception, e:
             print "error"
             print traceback.format_exc(e)
