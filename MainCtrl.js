@@ -2,7 +2,13 @@
 
 angular
   .module('hackday')
-  .controller('MainCtrl', function($scope, $q, BeatDetector, Sample) {
+  .controller('MainCtrl', function(
+    $scope,
+    $q,
+    BeatDetector,
+    Encoder,
+    Sample
+  ) {
 
     var context = new AudioContext(),
       bufferSize = 2048,
@@ -159,6 +165,14 @@ angular
       //playSound(audioBuffer);
 
       return audioBuffer;
+    }
+
+    function upload() {
+      var decodedBuffer;
+      Encoder.toWav(decodedBuffer)
+        .then(function(blob) {
+          console.log(URL.createObjectURL(blob));
+        });
     }
 
     function playSound(audioBuffer, atTime) {
