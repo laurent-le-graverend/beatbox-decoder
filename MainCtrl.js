@@ -2,7 +2,10 @@
 
 angular
   .module('hackday')
-  .controller('MainCtrl', function($scope) {
+  .controller('MainCtrl', function(
+    $scope,
+    BeatDetector
+  ) {
 
     var context = new AudioContext(),
       bufferSize = 2048,
@@ -36,13 +39,26 @@ angular
     }
 
     $scope.toggleRecord = function() {
+      var record;
+
       if (!$scope.isRecording) {
         startRecord();
         $scope.isRecording = true;
       }
       else {
-        stopRecord();
+        var record = stopRecord();
         $scope.isRecording = false;
+        BeatDetector.lowPassFilter(record)
+          .then(function(audioBuffer) {
+            var playSound = context.createBufferSource();
+            playSound.buffer = audioBuffer;
+            playSound.connect(context.destination);
+            playSound.start(0);
+            return BeatDetector.getPeaks(audioBuffer, 1);
+          })
+          .then(function(peaks) {
+            console.log(peaks)
+          });
       }
     };
 

@@ -13,27 +13,27 @@ angular
     }
 
     function lowPassFilter(buffer) {
-      const ctx = new OfflineContext(1, buffer.length, buffer.sampleRate),
-        source = offlineContext.createBufferSource(),
-        filter = offlineContext.createBiquadFilter();
+      const ctx = new OfflineAudioContext(1, buffer.length, buffer.sampleRate),
+        source = ctx.createBufferSource(),
+        filter = ctx.createBiquadFilter();
 
        source.buffer = buffer;
        filter.type = "lowpass";
        source.connect(filter);
-       filter.connect(offlineContext.destination);
+       filter.connect(ctx.destination);
        source.start(0);
-       return offlineContext.startRendering();
+       return ctx.startRendering();
      }
 
-     function getPeaks(buffer) {
-        const channel = buffer.getChannel(0),
+     function getPeaks(buffer, threshold) {
+        const channel = buffer.getChannelData(0),
           peaks = [];
 
-        for (let c = 0; c < channels; c++) {
-          for (let i = 0; i < length; i++) {
-            if (channel[i] > THRESHOLD) {
-              peaks.push(i);
-            }
+
+        for (let i = 0; i < channel.length; i++) {
+          console.log(channel[i]);
+          if (channel[i] > threshold) {
+            peaks.push(i);
           }
         }
 
