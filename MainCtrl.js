@@ -15,7 +15,9 @@ angular
       soundArrayLeft = [],
       audioInput,
       recorder,
-      getUserMediaOpts;
+      getUserMediaOpts,
+      record,
+      peaks;
 
     getUserMediaOpts = {
       audio: {
@@ -72,7 +74,6 @@ angular
     };
 
     $scope.toggleRecord = function() {
-      var record;
 
       if (!$scope.isRecording) {
         startRecord();
@@ -104,8 +105,7 @@ angular
     function parse(buffer) {
       BeatDetector.lowPassFilter(buffer)
         .then(function(audioBuffer) {
-          var peaks,
-            initialThresold = 0.9,
+          var initialThresold = 0.9,
             thresold = initialThresold,
             minThresold = 0.3,
             minPeaks = 30;
@@ -115,7 +115,6 @@ angular
             thresold -= 0.05;
           } while (peaks.length < minPeaks && thresold >= minThresold);
           BeatDetector.drawBeats(peaks, audioBuffer.getChannelData(0).length);
-          console.log(BeatDetector.convertIndexToTime(peaks, buffer));
           beatsArray = _.map(BeatDetector.convertIndexToTime(peaks, buffer), function(time) {
             return {
               sound: 'kick',
@@ -167,12 +166,23 @@ angular
       return audioBuffer;
     }
 
-    function upload() {
-      var decodedBuffer;
-      Encoder.toWav(decodedBuffer)
-        .then(function(blob) {
-          console.log(URL.createObjectURL(blob));
-        });
+    $scope.uploadPeaks = function upload() {
+      const peakTimes = BeatDetector.convertIndexToTime(peaks, record);
+
+      BeatDetector.exportPeakBuffers(peakTimes, record)
+        .then(function(buffers) {
+          return $q.all(_.map(buffers, function(buffer) {
+            return Encoder.toWav(buffer);
+          }));
+        })
+        .then(function(blobs) {
+          _.each(blobs, function(blob) {
+            console.log(URL.createObjectURL(blob));
+          });
+        })
+        .catch(function(err) {
+          console.log(err);
+        })
     }
 
     function playSound(audioBuffer, atTime) {

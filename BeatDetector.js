@@ -2,7 +2,7 @@
 
 angular
   .module('hackday')
-  .factory('BeatDetector', function() {
+  .factory('BeatDetector', function($q) {
     return {
       convertIndexToTime: convertIndexToTime,
       drawBeats: drawBeats,
@@ -62,18 +62,21 @@ angular
       }
 
       function exportPeakBuffers(peaks, buffer) {
-        const timestamp = convertIndexToTime(peaks, audioBuffer);
-        return _.map(peaks, function(peak) {
+        const timestamp = convertIndexToTime(peaks, buffer);
+        return $q.all(_.map(peaks, function(peak) {
           return exportPeakBuffer(peak, buffer);
-        });
+        }));
       }
 
+
       function exportPeakBuffer(peak, buffer) {
-        const ctx = new OfflineAudioContext(1, 0.6 * buffer.sampleRate, buffer.sampleRate),
+        const ctx = new OfflineAudioContext(1, 1 * buffer.sampleRate, buffer.sampleRate),
           source = ctx.createBufferSource();
 
         source.buffer = buffer,
-        source.start(0, peak - 0.1, 0.5);
+        source.start(0, Math.max(peak - 0.3, 0), 1);
+        source.connect(ctx.destination);
+
         return ctx.startRendering();
       }
   });
