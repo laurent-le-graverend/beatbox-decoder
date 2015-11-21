@@ -11,7 +11,9 @@
 * http://localhost:3000/
 
 Debug
-* Access http://localhost:8000/ to debug the hit matcher
+* Access http://localhost:8000/ to debug the sound matcher
+
+To improve the detection, put lots of sample sounds in /autobeatbox/kick /autobeatbox/hh-closed and /autobeatbox/snare
 
 =Test=
 * Anaconda/python classify_beat.py
