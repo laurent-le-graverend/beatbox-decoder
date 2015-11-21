@@ -6,6 +6,7 @@ angular
     return {
       convertIndexToTime: convertIndexToTime,
       drawBeats: drawBeats,
+      exportPeakBuffers: exportPeakBuffers,
       getPeaks: getPeaks,
       lowPassFilter: lowPassFilter
     };
@@ -40,7 +41,7 @@ angular
       }
 
       function drawBeats(peaks, length) {
-        var ctx = document.querySelectorAll('#waveform').item(0).getContext('2d'),
+        const ctx = document.querySelectorAll('#waveform').item(0).getContext('2d'),
           width = ctx.canvas.width;
 
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -58,5 +59,21 @@ angular
         return peaks.map(function(peak) {
           return peak / audioBuffer.getChannelData(0).length * audioBuffer.duration;
         })
+      }
+
+      function exportPeakBuffers(peaks, buffer) {
+        const timestamp = convertIndexToTime(peaks, audioBuffer);
+        return _.map(peaks, function(peak) {
+          return exportPeakBuffer(peak, buffer);
+        });
+      }
+
+      function exportPeakBuffer(peak, buffer) {
+        const ctx = new OfflineAudioContext(1, 0.6 * buffer.sampleRate, buffer.sampleRate),
+          source = ctx.createBufferSource();
+
+        source.buffer = buffer,
+        source.start(0, peak - 0.1, 0.5);
+        return ctx.startRendering();
       }
   });
