@@ -33,8 +33,7 @@ angular
       worker.postMessage({
         command: 'record',
         buffer: [
-          buffer.getChannelData(0),
-          buffer.getChannelData(1)
+          buffer.getChannelData(0)
         ]
       });
 
